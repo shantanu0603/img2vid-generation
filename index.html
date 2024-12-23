@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Video Generator</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <style>
+        .glassmorphism {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d3748 100%);
+        }
+        
+        .input-gradient {
+            background: linear-gradient(145deg, #2d3748, #1a1a1a);
+        }
+        
+        .hover-scale {
+            transition: transform 0.2s;
+        }
+        
+        .hover-scale:hover {
+            transform: scale(1.02);
+        }
+        
+        .animate-gradient {
+            background-size: 200% 200%;
+            animation: gradient 15s ease infinite;
+        }
+        
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+    </style>
+</head>
+<body class="min-h-screen gradient-bg text-gray-100">
+    <div class="relative min-h-screen p-4 sm:p-6 md:p-8">
+        <!-- Decorative Elements -->
+        <div class="fixed top-0 left-0 w-full h-full opacity-30 pointer-events-none">
+            <div class="absolute top-10 left-10 w-64 h-64 bg-purple-500 rounded-full filter blur-3xl"></div>
+            <div class="absolute bottom-10 right-10 w-64 h-64 bg-blue-500 rounded-full filter blur-3xl"></div>
+        </div>
+
+        <div class="max-w-4xl mx-auto">
+            <!-- Header -->
+            <div class="text-center mb-12">
+                <h1 class="text-4xl md:text-5xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
+                    AI Video Generator
+                </h1>
+                <p class="text-gray-400">Transform your images into stunning videos with AI</p>
+            </div>
+
+            <!-- Main Form -->
+            <div class="glassmorphism rounded-2xl p-6 md:p-8 shadow-xl hover-scale">
+                <form id="videoForm" class="space-y-8">
+                    <!-- Image Upload Section -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-4">
+                            <label class="block text-sm font-medium text-gray-300">First Image</label>
+                            <div class="relative">
+                                <input type="file" name="image1" accept="image/*" required
+                                    class="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-500 file:text-white hover:file:bg-blue-600">
+                            </div>
+                        </div>
+                        <div class="space-y-4">
+                            <label class="block text-sm font-medium text-gray-300">Second Image</label>
+                            <div class="relative">
+                                <input type="file" name="image2" accept="image/*" required
+                                    class="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-500 file:text-white hover:file:bg-blue-600">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Prompt Section -->
+                    <div class="space-y-4">
+                        <label class="block text-sm font-medium text-gray-300">Video Prompt</label>
+                        <textarea name="prompt" id="prompt" rows="4" required
+                            class="w-full p-4 rounded-lg bg-gray-800 border border-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 placeholder-gray-500"
+                            placeholder="Describe how you want your video to look..."></textarea>
+                        
+                        <button type="button" id="generatePrompt"
+                            class="inline-flex items-center px-6 py-3 rounded-lg text-sm font-medium bg-gray-800 hover:bg-gray-700 transition-colors duration-200">
+                            🎲 Generate Random Prompt
+                        </button>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit"
+                        class="w-full py-4 px-6 rounded-lg text-white font-medium bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 transform transition-all duration-200 hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-900">
+                        Generate Video
+                    </button>
+                </form>
+
+                <!-- Status and Video Display -->
+                <div class="mt-8 space-y-6">
+                    <div id="status" class="hidden rounded-lg p-4"></div>
+                    <div id="videoContainer" class="hidden space-y-4">
+                        <h2 class="text-xl font-semibold text-gray-200">Your Generated Video</h2>
+                        <div class="relative rounded-lg overflow-hidden bg-gray-800 aspect-video">
+                            <video id="videoPlayer" controls class="w-full h-full"></video>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Your existing JavaScript code remains the same
+        document.getElementById('generatePrompt').addEventListener('click', async () => {
+            try {
+                const response = await fetch('/generate-prompt', {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                if (data.prompt) {
+                    document.getElementById('prompt').value = data.prompt;
+                }
+            } catch (error) {
+                console.error('Error generating prompt:', error);
+            }
+        });
+
+        document.getElementById('videoForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const statusDiv = document.getElementById('status');
+            const videoContainer = document.getElementById('videoContainer');
+            const videoPlayer = document.getElementById('videoPlayer');
+            
+            statusDiv.className = 'p-4 rounded-lg bg-blue-500 bg-opacity-20 text-blue-300';
+            statusDiv.textContent = 'Generating video... Please wait.';
+            statusDiv.classList.remove('hidden');
+            videoContainer.classList.add('hidden');
+            
+            try {
+                const response = await fetch('/generate-video', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    statusDiv.className = 'p-4 rounded-lg bg-red-500 bg-opacity-20 text-red-300';
+                    statusDiv.textContent = data.error;
+                    return;
+                }
+                
+                if (data.video_url) {
+                    statusDiv.className = 'p-4 rounded-lg bg-green-500 bg-opacity-20 text-green-300';
+                    statusDiv.textContent = data.status;
+                    videoPlayer.src = data.video_url;
+                    videoContainer.classList.remove('hidden');
+                } else {
+                    statusDiv.className = 'p-4 rounded-lg bg-yellow-500 bg-opacity-20 text-yellow-300';
+                    statusDiv.textContent = 'Video generation completed but no URL was returned.';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                statusDiv.className = 'p-4 rounded-lg bg-red-500 bg-opacity-20 text-red-300';
+                statusDiv.textContent = 'An error occurred while generating the video.';
+            }
+        });
+    </script>
+</body>
+</html>
