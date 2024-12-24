@@ -2,7 +2,7 @@
 import google.generativeai as genai
 
 # Configure Gemini API
-GEMINI_API_KEY = "AIzaSyDqYrSRU2IpVNpx_Jf_GamLpti-QJ1tGj0"
+GEMINI_API_KEY = ""
 genai.configure(api_key=GEMINI_API_KEY)
 
 def generate_random_prompt():
